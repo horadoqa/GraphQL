@@ -1,0 +1,130 @@
+name: GraphQL Performance Tests
+
+on:
+  workflow_dispatch:
+
+jobs:
+  performance:
+    name: GraphQL Performance
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # ==========================================================
+      # Checkout
+      # ==========================================================
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ==========================================================
+      # Instalar k6
+      # ==========================================================
+
+      - name: Setup k6
+        uses: grafana/setup-k6-action@v1
+
+      # ==========================================================
+      # Subir PostgreSQL + GraphQL
+      # ==========================================================
+
+      - name: Start application
+        working-directory: horadoqa
+        run: |
+          docker compose up -d --build
+
+      # ==========================================================
+      # Verificar containers
+      # ==========================================================
+
+      - name: Docker status
+        working-directory: horadoqa
+        run: |
+          docker compose ps
+
+      # ==========================================================
+      # Aguardar API GraphQL
+      # ==========================================================
+
+      - name: Wait for GraphQL API
+        run: |
+          echo "Aguardando GraphQL API..."
+
+          for i in {1..30}; do
+
+            STATUS=$(curl -s -o /dev/null \
+              -w "%{http_code}" \
+              -X POST http://localhost:4000 \
+              -H "Content-Type: application/json" \
+              -d '{"query":"{ users { id } }"}')
+
+            if [ "$STATUS" = "200" ]; then
+              echo "GraphQL API disponível!"
+              exit 0
+            fi
+
+            echo "Tentativa $i/30 - HTTP $STATUS"
+
+            sleep 2
+
+          done
+
+          echo "GraphQL API não iniciou."
+
+          cd horadoqa
+          docker compose logs
+
+          exit 1
+
+      # ==========================================================
+      # Health Check
+      # ==========================================================
+
+      - name: GraphQL Health Check
+        run: |
+          curl -f \
+            -X POST http://localhost:4000 \
+            -H "Content-Type: application/json" \
+            -d '{
+              "query": "{ users { id name email administrador } }"
+            }'
+
+      # ==========================================================
+      # Teste de criação
+      # ==========================================================
+
+      - name: k6 - Create Users
+        run: |
+          k6 run horadoqa/tests/k6/create-users.js
+
+      # ==========================================================
+      # Teste de leitura
+      # ==========================================================
+
+      - name: k6 - Get Users
+        run: |
+          k6 run horadoqa/tests/k6/get-users.js
+
+      # ==========================================================
+      # Logs da aplicação se houver falha
+      # ==========================================================
+
+      - name: Docker logs
+        if: failure()
+        working-directory: horadoqa
+        run: |
+          echo "===== API ====="
+          docker compose logs api
+
+          echo "===== DATABASE ====="
+          docker compose logs db
+
+      # ==========================================================
+      # Finalizar ambiente
+      # ==========================================================
+
+      - name: Stop application
+        if: always()
+        working-directory: horadoqa
+        run: |
+          docker compose down -v

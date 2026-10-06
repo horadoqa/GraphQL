@@ -23,10 +23,10 @@ export const options = {
       executor: 'constant-vus',
 
       // Quantidade de usuários virtuais
-      vus: 5,
+      vus: Number(__ENV.VUS || 5),
 
       // Duração do teste
-      duration: '30s',
+      duration: __ENV.DURATION || '30s',
     },
   },
 
