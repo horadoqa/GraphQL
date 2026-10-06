@@ -43,7 +43,7 @@ query {
  Use:
 
 ```bash
-curl -X POST http://localhost:4000 \
+curl -I -X POST http://localhost:4000 \
   -H "Content-Type: application/json" \
   -d '{
     "query": "query { user(id: \"1\") { id name email password administrador} }"
