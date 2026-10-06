@@ -10,6 +10,7 @@ export const typeDefs = `#graphql
   type Query {
     users: [User!]!
     user(id: ID!): User
+    usersCount: Int!
   }
 
   type Mutation {
@@ -17,3 +18,5 @@ export const typeDefs = `#graphql
     updateUser(id: ID!, name: String!, email: String!, password: String!, administrador: Boolean!): User
     deleteUser(id: ID!): User
   }`;
+
+  
