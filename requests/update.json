@@ -1,0 +1,10 @@
+{
+  "query": "mutation UpdateUser($id: ID!, $name: String!, $email: String!, $password: String!, $administrador: Boolean!) { updateUser(id: $id, name: $name, email: $email, password: $password, administrador: $administrador) { id name email password administrador } }",
+  "variables": {
+    "id": "2",
+    "name": "Ricardo Fahham - Atualizado",
+    "email": "ricardo.fahham@email.com",
+    "password": "1q2w3e4r",
+    "administrador": false
+  }
+}

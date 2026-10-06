@@ -1,0 +1,6 @@
+{
+  "query": "mutation DeleteUser($id: ID!) { deleteUser(id: $id) { id name email } }",
+  "variables": {
+    "id": "2"
+  }
+}

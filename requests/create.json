@@ -1,0 +1,9 @@
+{
+  "query": "mutation CreateUser($name: String!, $email: String!, $password: String!, $administrador: Boolean!) { createUser(name: $name, email: $email, password: $password, administrador: $administrador) { id name email password administrador } }",
+  "variables": {
+    "name": "Ricardo Fahham",
+    "email": "ricardo.fahham@email.com",
+    "password": "1q2w3e4r",
+    "administrador": true
+  }
+}
