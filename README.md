@@ -1,92 +1,394 @@
 # Aplicação com GraphQL
 
-**Apollo Server continua sendo uma das opções mais utilizadas e reconhecidas no ecossistema GraphQL**, especialmente em empresas que usam Apollo Federation/GraphOS. Em 2026, a versão atual é **Apollo Server 5**; a versão 4 chegou ao fim de vida em janeiro de 2026.  Apollo GraphQL+1
+Projeto desenvolvido para estudar e praticar **GraphQL** utilizando **Node.js, TypeScript e Apollo Server**.
 
-## Principais opções hoje
+O objetivo é construir uma API GraphQL evoluindo gradualmente de um exemplo simples em memória para uma API CRUD completa utilizando banco de dados.
 
-| Server | Ecossistema | Quando eu usaria |
-| --- | --- | --- |
-| **Apollo Server** | Apollo | ⭐ Empresas, APIs grandes, Federation |
-| **GraphQL Yoga** | The Guild | APIs leves, flexibilidade, diferentes runtimes |
-| **Mercurius** | Fastify | Projetos que já usam Fastify |
+---
 
-O **GraphQL Yoga** também é uma opção bastante relevante atualmente e tem como proposta ser cross-platform, com foco em performance e facilidade de configuração.  The Guild
+# Sobre
 
-Para o nosso projeto, **eu continuaria com Apollo Server**. Não há necessidade de trocar.
+## O que é GraphQL?
 
-Inclusive, estamos usando exatamente a abordagem recomendada atualmente:
+GraphQL é uma linguagem de consulta para APIs que permite ao cliente especificar exatamente quais dados deseja receber.
 
-```ts
-import { ApolloServer } from "@apollo/server";
-import { startStandaloneServer } from "@apollo/server/standalone";
-```
-
- A própria documentação atual do Apollo usa `@apollo/server` e `startStandaloneServer` nos exemplos de TypeScript.  Apollo GraphQL
-
-## E por que escolher Apollo?
-
- Principalmente se você pretende evoluir para uma arquitetura maior:
-
-```mermaid
-flowchart LR
-    Frontend --> Router["Apollo Router"]
-
-Router --> Users["Serviço de Usuários"]
-Router --> Products["Serviço de Produtos"]
-Router --> Orders["Serviço de Pedidos"]
-```
-
-Isso entra no conceito de **Apollo Federation**, onde vários serviços GraphQL podem formar um único grafo. O Apollo mantém ferramentas específicas para esse cenário.  Apollo GraphQL
-
-Para aprender GraphQL, eu sugiro seguirmos com:
+Em uma API REST tradicional, normalmente temos diferentes endpoints:
 
 ```
-Node.js
+GET    /users
+GET    /users/1
+POST   /users
+PUT    /users/1
+DELETE /users/1
+```
+
+No GraphQL, normalmente trabalhamos com um único endpoint e diferentes operações:
+
+```
+query
+mutation
+```
+
+Por exemplo:
+
+```
+query {
+  users {
+    id
+    name
+    email
+  }
+}
+```
+
+O cliente recebe somente os campos solicitados.
+
+---
+
+## Principais conceitos
+
+ Uma aplicação GraphQL normalmente possui três partes principais:
+
+### Schema
+
+ Define os tipos de dados e as operações disponíveis na API.
+
+```
+type User {
+  id: ID!
+  name: String!
+  email: String!
+}
+```
+
+ ### Resolvers
+
+ Implementam a lógica responsável por buscar ou alterar os dados.
+
+```
+Query: {
+  users: () => users,
+}
+```
+
+ ### Servidor GraphQL
+
+ Recebe as requisições, valida as operações de acordo com o schema e executa os resolvers correspondentes.
+
+ Neste projeto utilizamos o **Apollo Server**.
+
+---
+
+ # Projeto
+
+ ## Tecnologias
+
+ | Tecnologia | Utilização |
+| --- | --- |
+| Node.js | Runtime |
+| TypeScript | Linguagem |
+| GraphQL | API |
+| Apollo Server | Servidor GraphQL |
+| nanoid | Geração de IDs |
+| Prisma | ORM |
+| PostgreSQL | Banco de dados |
+| Apollo Client | Cliente GraphQL |
+| React | Frontend |
+
+A arquitetura planejada é:
+
+```
+React
    ↓
-TypeScript
+Apollo Client
    ↓
-Apollo Server 5
+Apollo Server
    ↓
 GraphQL
    ↓
 Prisma
    ↓
 PostgreSQL
-   ↓
-Apollo Client / React
 ```
 
-E aí podemos transformar o nosso exemplo atual em uma **API CRUD completa**, começando por `User`, usando **GraphQL Variables + Input Types + Prisma + PostgreSQL**. Esse caminho vai te ensinar praticamente a estrutura que você encontraria em um projeto profissional.
+---
 
-Uma aplicação GraphQL normalmente tem **3 partes principais**:
+ ## Por que Apollo Server?
 
-- **Schema**: define quais dados e operações a API oferece.
-- **Resolvers**: implementam a lógica para buscar ou alterar os dados.
-- **Servidor GraphQL**: recebe as queries/mutations e chama os resolvers.
+ O **Apollo Server** é uma opção consolidada no ecossistema GraphQL e possui ferramentas voltadas para aplicações que podem evoluir para arquiteturas maiores.
 
-Um exemplo simples usando **Node.js + TypeScript \+ Apollo Server**:
+ Também existe o **GraphQL Yoga**, que é uma alternativa bastante utilizada e possui suporte a diferentes runtimes e ambientes.
 
-## 1\. Crie o projeto
+ Neste projeto, a escolha é pelo Apollo Server para manter o foco no ecossistema Apollo e facilitar uma possível evolução para arquiteturas utilizando Apollo Federation.
 
-```bash
-mkdir minha-api
-cd minha-api
+ Uma arquitetura futura poderia ser:
+
+ Mermaid flowchart: Frontend, Apollo Router, Serviço de Usuários, Serviço de Produtos, Serviço de Pedidos
+
+Nesse cenário, diferentes serviços podem participar de um único grafo GraphQL.
+
+---
+
+ # Consultas
+
+ As consultas GraphQL são chamadas de **Queries**.
+
+ ## Listar usuários
+
+```
+query {
+  users {
+    id
+    name
+    email
+  }
+}
+```
+
+ Resposta:
+
+```
+{
+  "data": {
+    "users": [
+      {
+        "id": "00M9D1vh4YvezjL9",
+        "name": "Hora do QA",
+        "email": "horadoqa@email.com"
+      }
+    ]
+  }
+}
+```
+
+---
+
+ ## Buscar um usuário
+
+ Podemos consultar um usuário específico utilizando seu ID:
+
+```
+query {
+  user(id: "00M9D1vh4YvezjL9") {
+    id
+    name
+    email
+  }
+}
+```
+
+---
+
+ # Mutações
+
+ As operações que alteram dados são chamadas de **Mutations**.
+
+ Neste projeto temos:
+
+```
+createUser
+updateUser
+deleteUser
+```
+
+---
+
+ ## Criar usuário
+
+```
+mutation {
+  createUser(
+    name: "Ricardo Fahham"
+    email: "ricardo.fahham@email.com"
+    password: "1q2w3e4r"
+    administrador: true
+  ) {
+    id
+    name
+    email
+    administrador
+  }
+}
+```
+
+ O ID é gerado automaticamente pelo servidor utilizando `nanoid`.
+
+ Exemplo:
+
+```
+{
+  "id": "X7kP2mQa9Lw3NzRt",
+  "name": "Ricardo Fahham",
+  "email": "ricardo.fahham@email.com",
+  "administrador": true
+}
+```
+
+ O cliente não precisa informar o ID.
+
+---
+
+ ## GraphQL Variables
+
+ Em vez de colocar os valores diretamente na mutation, podemos utilizar **Variables**.
+
+ Query:
+
+```
+mutation CreateUser(
+  $name: String!
+  $email: String!
+  $password: String!
+  $administrador: Boolean!
+) {
+  createUser(
+    name: $name
+    email: $email
+    password: $password
+    administrador: $administrador
+  ) {
+    id
+    name
+    email
+    administrador
+  }
+}
+```
+
+ Variables:
+
+```
+{
+  "name": "Ricardo Fahham",
+  "email": "ricardo.fahham@email.com",
+  "password": "1q2w3e4r",
+  "administrador": true
+}
+```
+
+ Essa abordagem é especialmente importante quando começarmos a trabalhar com aplicações reais.
+
+---
+
+ ## Atualizar usuário
+
+ Para atualizar um usuário, utilizamos o ID retornado anteriormente:
+
+```
+mutation UpdateUser(
+  $id: ID!
+  $name: String!
+  $email: String!
+  $password: String!
+  $administrador: Boolean!
+) {
+  updateUser(
+    id: $id
+    name: $name
+    email: $email
+    password: $password
+    administrador: $administrador
+  ) {
+    id
+    name
+    email
+    administrador
+  }
+}
+```
+
+ Variables:
+
+```
+{
+  "id": "X7kP2mQa9Lw3NzRt",
+  "name": "Ricardo Fahham - Atualizado",
+  "email": "ricardo.fahham@email.com",
+  "password": "1q2w3e4r",
+  "administrador": false
+}
+```
+
+---
+
+ ## Excluir usuário
+
+```
+mutation DeleteUser($id: ID!) {
+  deleteUser(id: $id) {
+    id
+    name
+    email
+  }
+}
+```
+
+ Variables:
+
+```
+{
+  "id": "X7kP2mQa9Lw3NzRt"
+}
+```
+
+---
+
+ # Estrutura do projeto
+
+ A estrutura inicial pode ser:
+
+```
+horadoqa/
+├── src/
+│   ├── index.ts
+│   ├── schema.ts
+│   └── resolvers.ts
+│
+├── requests/
+│   ├── create.json
+│   ├── read.json
+│   ├── update.json
+│   └── delete.json
+│
+├── package.json
+├── tsconfig.json
+└── README.md
+```
+
+A pasta `requests` pode ser utilizada para armazenar exemplos de requisições GraphQL que podem ser executadas utilizando `curl`.
+
+---
+
+ # Configuração do projeto
+
+ ## 1\. Criar o projeto
+
+```
+mkdir horadoqa
+cd horadoqa
+
 npm init -y
+```
 
-npm install @apollo/server graphql
+ ## 2\. Instalar dependências
+
+```
+npm install @apollo/server graphql nanoid
 npm install -D typescript tsx @types/node
 ```
 
-## 2\. Defina o schema
+ ## 3\. Schema
 
  Crie `src/schema.ts`:
 
-```ts
+```
 export const typeDefs = `#graphql
   type User {
     id: ID!
     name: String!
     email: String!
+    password: String!
+    administrador: Boolean!
   }
 
   type Query {
@@ -95,37 +397,42 @@ export const typeDefs = `#graphql
   }
 
   type Mutation {
-    createUser(name: String!, email: String!): User!
+    createUser(
+      name: String!
+      email: String!
+      password: String!
+      administrador: Boolean!
+    ): User!
+
+    updateUser(
+      id: ID!
+      name: String!
+      email: String!
+      password: String!
+      administrador: Boolean!
+    ): User
+
+    deleteUser(id: ID!): User
   }
 `;
 ```
 
- Aqui estamos dizendo que nossa API possui:
+---
+
+ # Resolvers
+
+ Crie `src/resolvers.ts`:
 
 ```
-query {
-  users
-}
-```
+import { nanoid } from "nanoid";
 
- e:
-
-```
-mutation {
-  createUser(name: "Hora do QA", email: "horadoqa@email.com")
-}
-```
-
-## 3\. Crie os resolvers
-
- `src/resolvers.ts`:
-
-```ts
 const users = [
   {
-    id: "1",
-    name: "João",
-    email: "joao@email.com",
+    id: "00M9D1vh4YvezjL9",
+    name: "Hora do QA",
+    email: "horadoqa@email.com",
+    password: "1q2w3e4r",
+    administrador: true,
   },
 ];
 
@@ -141,27 +448,76 @@ export const resolvers = {
   Mutation: {
     createUser: (
       _: unknown,
-      args: { name: string; email: string }
+      args: {
+        name: string;
+        email: string;
+        password: string;
+        administrador: boolean;
+      }
     ) => {
       const user = {
-        id: String(users.length + 1),
+        id: nanoid(16),
         name: args.name,
         email: args.email,
+        password: args.password,
+        administrador: args.administrador,
       };
 
       users.push(user);
 
       return user;
     },
+
+    updateUser: (
+      _: unknown,
+      args: {
+        id: string;
+        name: string;
+        email: string;
+        password: string;
+        administrador: boolean;
+      }
+    ) => {
+      const user = users.find(user => user.id === args.id);
+
+      if (!user) {
+        return null;
+      }
+
+      user.name = args.name;
+      user.email = args.email;
+      user.password = args.password;
+      user.administrador = args.administrador;
+
+      return user;
+    },
+
+    deleteUser: (_: unknown, args: { id: string }) => {
+      const index = users.findIndex(user => user.id === args.id);
+
+      if (index === -1) {
+        return null;
+      }
+
+      const [deletedUser] = users.splice(index, 1);
+
+      return deletedUser;
+    },
   },
 };
 ```
 
- ### 4\. Crie o servidor
+ > **Nota:** este exemplo utiliza um array em memória apenas para fins didáticos. Os dados serão perdidos quando o servidor for reiniciado.
 
- `src/index.ts`:
+ Em uma aplicação real, as informações deverão ser armazenadas em um banco de dados.
 
-```ts
+---
+
+ # Servidor
+
+ Crie `src/index.ts`:
+
+```
 import { ApolloServer } from "@apollo/server";
 import { startStandaloneServer } from "@apollo/server/standalone";
 
@@ -184,12 +540,11 @@ async function startServer() {
 }
 
 startServer();
-
 ```
 
- Adicione ao `package.json`:
+ No `package.json`:
 
-```json
+```
 {
   "scripts": {
     "dev": "tsx watch src/index.ts"
@@ -197,55 +552,195 @@ startServer();
 }
 ```
 
- E execute:
+ Execute:
 
 ```
 npm run dev
 ```
 
- Você terá uma API GraphQL em:
+ Servidor:
 
 ```
 http://localhost:4000
 ```
 
- ### 5\. Faça uma query
+---
 
- No GraphQL, o cliente especifica **exatamente os campos que quer receber**:
+ # Testando com cURL
 
-```
-query {
-  users {
-    id
-    name
-    email
-  }
-}
-```
-
- Resposta:
-
-```json
-{
-  "data": {
-    "users": [
-      {
-        "id": "1",
-        "name": "Hora do QA",
-        "email": "horadoqa@email.com"
-      }
-    ]
-  }
-}
-```
-
- A grande diferença para uma API REST é que, em vez de ter endpoints como:
+ ## Create
 
 ```
-GET /users
-GET /users/1
-POST /users
+curl -X POST http://localhost:4000 \
+  -H "Content-Type: application/json" \
+  -d @requests/create.json | jq
 ```
 
+ ## Read
 
+```
+curl -X POST http://localhost:4000 \
+  -H "Content-Type: application/json" \
+  -d @requests/read.json | jq
+```
 
+ ## Update
+
+```
+curl -X POST http://localhost:4000 \
+  -H "Content-Type: application/json" \
+  -d @requests/update.json | jq
+```
+
+ ## Delete
+
+```
+curl -X POST http://localhost:4000 \
+  -H "Content-Type: application/json" \
+  -d @requests/delete.json | jq
+```
+
+---
+
+ # ID dos usuários
+
+ Os usuários utilizam IDs gerados pelo `nanoid`.
+
+ Exemplo:
+
+```
+00M9D1vh4YvezjL9
+X7kP2mQa9Lw3NzRt
+V1StGXR8_Z5jdHi6
+```
+
+ A geração é feita no servidor:
+
+```
+id: nanoid(16)
+```
+
+ Dessa forma, o cliente não precisa controlar a sequência dos IDs.
+
+ Isso é preferível à utilização de:
+
+```
+id: String(users.length + 1)
+```
+
+ porque IDs sequenciais baseados no tamanho atual do array podem gerar duplicidades após exclusões.
+
+---
+
+ # Evolução do projeto
+
+ O projeto será evoluído gradualmente.
+
+ ## Etapa 1 — GraphQL básico
+
+ - [x] Apollo Server
+- [x] TypeScript
+- [x] Schema
+- [x] Queries
+- [x] Mutations
+- [x] CRUD de usuários
+- [x] GraphQL Variables
+- [x] Geração de IDs com nanoid
+
+ ## Etapa 2 — Organização
+
+ - [ ] Input Types
+- [ ] Separação de tipos
+- [ ] Validações
+- [ ] Tratamento de erros
+- [ ] Organização por módulos
+- [ ] Services
+- [ ] Repository Pattern
+
+ ## Etapa 3 — Banco de dados
+
+```
+GraphQL
+   ↓
+Resolvers
+   ↓
+Services
+   ↓
+Prisma
+   ↓
+PostgreSQL
+```
+
+ - [ ] Prisma
+- [ ] PostgreSQL
+- [ ] Migrations
+- [ ] Models
+- [ ] Relacionamentos
+- [ ] Paginação
+- [ ] Filtros
+
+ ## Etapa 4 — Segurança
+
+ - [ ] Hash de senha
+- [ ] Autenticação
+- [ ] JWT
+- [ ] Autorização
+- [ ] Controle de acesso
+- [ ] Validação de entrada
+
+ ## Etapa 5 — Frontend
+
+```
+React
+   ↓
+Apollo Client
+   ↓
+GraphQL API
+```
+
+ - [ ] Apollo Client
+- [ ] Queries
+- [ ] Mutations
+- [ ] Cache
+- [ ] Loading states
+- [ ] Error handling
+
+---
+
+ # Objetivo final
+
+ Ao final do projeto, teremos uma aplicação seguindo uma arquitetura próxima da encontrada em projetos profissionais:
+
+```
+                    ┌──────────────┐
+                    │    React     │
+                    └──────┬───────┘
+                           │
+                    Apollo Client
+                           │
+                           ▼
+                    ┌──────────────┐
+                    │    GraphQL   │
+                    └──────┬───────┘
+                           │
+                    ┌──────▼───────┐
+                    │    Apollo    │
+                    │    Server    │
+                    └──────┬───────┘
+                           │
+                    ┌──────▼───────┐
+                    │   Services   │
+                    └──────┬───────┘
+                           │
+                    ┌──────▼───────┐
+                    │    Prisma    │
+                    └──────┬───────┘
+                           │
+                    ┌──────▼───────┐
+                    │  PostgreSQL  │
+                    └──────────────┘
+```
+
+ A ideia é utilizar este projeto como laboratório para entender, na prática, como construir uma API GraphQL desde os conceitos fundamentais até uma arquitetura mais próxima de uma aplicação profissional.
+
+ Eu faria **“Sobre”, “Projeto” e “Consultas” como os três primeiros blocos principais**, exatamente como você pensou. Depois entraria em **Mutações**, porque elas são a continuação natural das consultas. Isso deixa o README muito mais fácil de acompanhar enquanto você evolui o projeto.

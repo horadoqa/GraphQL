@@ -1,6 +1,5 @@
 # Executando localmente
 
-
 ```bash
 npm run dev   
 
